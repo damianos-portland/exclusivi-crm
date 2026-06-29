@@ -10,13 +10,6 @@ function hashPassword(password: string): string {
   return `${salt.toString("hex")}:${derived.toString("hex")}`;
 }
 
-const day = (offset: number) => {
-  const d = new Date();
-  d.setDate(d.getDate() + offset);
-  d.setHours(12, 0, 0, 0);
-  return d;
-};
-
 async function main() {
   // ── Χρήστης (CEO) ──────────────────────────────────────────────
   const email = process.env.ADMIN_EMAIL || "ceo@exclusivi.gr";
@@ -34,25 +27,17 @@ async function main() {
   });
   console.log("✓ Χρήστης:", email);
 
-  // ── Senders ────────────────────────────────────────────────────
+  // ── Sender ─────────────────────────────────────────────────────
   if ((await prisma.sender.count()) === 0) {
-    await prisma.sender.createMany({
-      data: [
-        {
-          label: "Λογιστήριο",
-          fromName: "Exclusivi — Λογιστήριο",
-          fromEmail: "accounts@exclusivi.gr",
-          isDefault: true,
-        },
-        {
-          label: "Διοίκηση",
-          fromName: "Exclusivi",
-          fromEmail: "info@exclusivi.gr",
-          isDefault: false,
-        },
-      ],
+    await prisma.sender.create({
+      data: {
+        label: "Exclusivi",
+        fromName: "Exclusivi",
+        fromEmail: "bk@exclusivi.com",
+        isDefault: true,
+      },
     });
-    console.log("✓ Senders");
+    console.log("✓ Sender");
   }
 
   // ── Templates ──────────────────────────────────────────────────
@@ -80,76 +65,6 @@ async function main() {
       ],
     });
     console.log("✓ Templates");
-  }
-
-  // ── Δείγμα πελατών (μόνο αν είναι κενή η βάση) ──────────────────
-  if ((await prisma.customer.count()) === 0) {
-    const c1 = await prisma.customer.create({
-      data: {
-        name: "Καφέ Ακρόπολις ΕΠΕ",
-        contactPerson: "Γιώργος Παπαδόπουλος",
-        email: "info@akropolis-cafe.gr",
-        phone: "+30 210 1234567",
-        vatNumber: "094123456",
-        status: "ACTIVE",
-        charges: {
-          create: {
-            title: "Πακέτο Social Media — Q1 2026",
-            amount: 120000, // 1.200,00 € καθαρά
-            vatRate: 24,
-            dueDate: day(-10),
-            receipts: { create: { amount: 50000, method: "Τραπεζική" } },
-          },
-        },
-      },
-    });
-    const c2 = await prisma.customer.create({
-      data: {
-        name: "Glow Beauty Studio",
-        contactPerson: "Μαρία Ιωάννου",
-        email: "hello@glowstudio.gr",
-        phone: "+30 211 9876543",
-        vatNumber: "099987654",
-        status: "ACTIVE",
-        charges: {
-          create: {
-            title: "Κατασκευή website",
-            amount: 250000,
-            vatRate: 24,
-            dueDate: day(20),
-          },
-        },
-      },
-    });
-    await prisma.customer.create({
-      data: {
-        name: "TechNova Solutions",
-        contactPerson: "Νίκος Δημητρίου",
-        email: "accounts@technova.gr",
-        phone: "+30 210 5556677",
-        vatNumber: "800111222",
-        status: "ACTIVE",
-        charges: {
-          create: {
-            title: "Συμβόλαιο συντήρησης 2026",
-            amount: 360000,
-            vatRate: 24,
-            dueDate: day(-2),
-            receipts: { create: { amount: 446400, method: "Τραπεζική" } },
-          },
-        },
-      },
-    });
-    await prisma.activity.createMany({
-      data: [
-        { customerId: c1.id, type: "NOTE", body: "Ενδιαφέρον για επέκταση σε Google Ads." },
-        { customerId: c2.id, type: "NOTE", body: "Ζήτησε προσφορά για λογότυπο." },
-      ],
-    });
-    await prisma.task.create({
-      data: { customerId: c1.id, title: "Follow-up για υπόλοιπο πληρωμής", dueDate: day(2) },
-    });
-    console.log("✓ Δείγμα πελατών");
   }
 
   console.log("\n✅ Seed ολοκληρώθηκε.");
