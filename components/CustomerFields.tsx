@@ -5,6 +5,7 @@ type Defaults = {
   phone?: string | null;
   vatNumber?: string | null;
   address?: string | null;
+  pms?: string | null;
   status?: string;
   notes?: string | null;
 };
@@ -44,6 +45,15 @@ export function CustomerFields({ d = {} }: { d?: Defaults }) {
         <div>
           <label className="label">Διεύθυνση</label>
           <input name="address" defaultValue={d.address ?? ""} className="input" />
+        </div>
+        <div>
+          <label className="label">PMS</label>
+          <input
+            name="pms"
+            defaultValue={d.pms ?? ""}
+            placeholder="π.χ. Opera, Protel, Cloudbeds, Mews…"
+            className="input"
+          />
         </div>
         <div className="col-span-2">
           <label className="label">Σημειώσεις</label>

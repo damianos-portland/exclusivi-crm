@@ -48,6 +48,7 @@ function customerData(formData: FormData) {
     phone: str(formData.get("phone")),
     vatNumber: str(formData.get("vatNumber")),
     address: str(formData.get("address")),
+    pms: str(formData.get("pms")),
     status: String(formData.get("status") || "ACTIVE"),
     notes: str(formData.get("notes")),
   };

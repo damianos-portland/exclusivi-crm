@@ -67,6 +67,7 @@ export default async function CustomersPage({
               <tr>
                 <th className="th">Πελάτης</th>
                 <th className="th">Επικοινωνία</th>
+                <th className="th">PMS</th>
                 <th className="th">Κατάσταση</th>
                 <th className="th text-right">Υπόλοιπο</th>
                 <th className="th text-right">Ληξιπρόθεσμα</th>
@@ -90,6 +91,13 @@ export default async function CustomersPage({
                       {c.phone && <div>{c.phone}</div>}
                     </td>
                     <td className="td">
+                      {c.pms ? (
+                        <span className="badge bg-slate-100 text-slate-700">{c.pms}</span>
+                      ) : (
+                        <span className="text-[var(--muted)]">—</span>
+                      )}
+                    </td>
+                    <td className="td">
                       <CustomerStatusBadge status={c.status} />
                     </td>
                     <td className="td text-right font-medium">
@@ -109,7 +117,7 @@ export default async function CustomersPage({
               })}
               {customers.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="td py-10 text-center text-[var(--muted)]">
+                  <td colSpan={6} className="td py-10 text-center text-[var(--muted)]">
                     Δεν βρέθηκαν πελάτες.
                   </td>
                 </tr>

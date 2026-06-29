@@ -27,6 +27,7 @@ model Customer {
   phone         String?
   vatNumber     String? // ΑΦΜ
   address       String?
+  pms           String? // Property Management System που χρησιμοποιεί ο πελάτης
   status        String   @default("ACTIVE") // LEAD | ACTIVE | CHURNED
   notes         String?
   createdAt     DateTime @default(now())

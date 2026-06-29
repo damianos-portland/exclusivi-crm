@@ -268,6 +268,7 @@ export default async function CustomerPage({
               <Info label="Email" value={customer.email} />
               <Info label="Τηλέφωνο" value={customer.phone} />
               <Info label="ΑΦΜ" value={customer.vatNumber} />
+              <Info label="PMS" value={customer.pms} />
               <Info label="Διεύθυνση" value={customer.address} />
               {customer.notes && <Info label="Σημειώσεις" value={customer.notes} />}
             </dl>
