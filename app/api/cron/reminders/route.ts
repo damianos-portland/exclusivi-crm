@@ -7,12 +7,13 @@ import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/dates";
 import { runRecurring } from "@/lib/recurring";
 import { pollInbound } from "@/lib/inbound";
+import { stepForDays } from "@/lib/dunning";
 
 export const dynamic = "force-dynamic";
 
 // Daily run (Vercel Cron). Does three things:
 //   1. Generates due recurring charges
-//   2. Sends payment reminders for overdue balances (max 1/week per customer)
+//   2. Sends escalating payment reminders (dunning: gentle → firm → final)
 //   3. Polls the inbox for client replies (IMAP) and logs them
 // Protected by CRON_SECRET.
 export async function GET(req: NextRequest) {
@@ -42,10 +43,8 @@ export async function GET(req: NextRequest) {
   const sender =
     (await prisma.sender.findFirst({ where: { isDefault: true } })) ??
     (await prisma.sender.findFirst());
-  const template =
-    (await prisma.emailTemplate.findFirst({ where: { name: { contains: "Reminder" } } })) ??
-    (await prisma.emailTemplate.findFirst({ where: { name: { contains: "reminder" } } })) ??
-    (await prisma.emailTemplate.findFirst({ where: { name: { contains: "Υπενθύμιση" } } }));
+  const allTemplates = await prisma.emailTemplate.findMany();
+  const templateByName = new Map(allTemplates.map((t) => [t.name, t]));
 
   if (!sender) {
     return NextResponse.json({
@@ -60,7 +59,12 @@ export async function GET(req: NextRequest) {
     where: { email: { not: null } },
     include: {
       charges: { include: { receipts: true } },
-      emails: { where: { kind: "REMINDER", sentAt: { gte: weekAgo } }, take: 1 },
+      // last reminder sent, to decide escalation / weekly re-nudge
+      emails: {
+        where: { kind: "REMINDER", status: "SENT" },
+        orderBy: { sentAt: "desc" },
+        take: 1,
+      },
     },
   });
 
@@ -68,21 +72,29 @@ export async function GET(req: NextRequest) {
 
   for (const c of customers) {
     if (!c.email) continue;
-    if (c.emails.length > 0) {
-      results.push({ customer: c.name, status: "skipped (πρόσφατη υπενθύμιση)" });
-      continue;
-    }
 
     const overdue = c.charges
       .map((ch) => ({ ch, comp: computeCharge(ch, now) }))
       .filter((x) => x.comp.status === "OVERDUE");
     if (overdue.length === 0) continue;
 
+    const maxDays = Math.max(...overdue.map((x) => x.comp.daysOverdue));
+    const step = stepForDays(maxDays);
+    if (!step) continue;
+
+    // Escalate immediately on step change; otherwise re-nudge at most weekly.
+    const last = c.emails[0];
+    if (last && last.step === step.key && last.sentAt >= weekAgo) {
+      results.push({ customer: c.name, status: `skipped (${step.key} sent recently)` });
+      continue;
+    }
+
     const outstanding = overdue.reduce((s, x) => s + x.comp.remaining, 0);
     const earliestDue = overdue
       .map((x) => x.ch.dueDate)
       .filter(Boolean)
       .sort((a, b) => new Date(a!).getTime() - new Date(b!).getTime())[0];
+    const payLink = overdue.map((x) => x.ch.payLink).find(Boolean) ?? "";
 
     const vars = {
       name: c.name,
@@ -91,15 +103,13 @@ export async function GET(req: NextRequest) {
       total: formatMoney(outstanding),
       due: earliestDue ? formatDate(earliestDue) : "—",
       vat: c.vatNumber ?? "",
+      paylink: payLink,
       today: formatDate(now),
     };
 
-    const subject = template
-      ? renderTemplate(template.subject, vars)
-      : "Υπενθύμιση οφειλής — Exclusivi";
-    const body = template
-      ? renderTemplate(template.body, vars)
-      : `Αγαπητέ/ή ${vars.contact},\n\nΥπάρχει εκκρεμές υπόλοιπο ${vars.amount}.\n\nExclusivi`;
+    const tpl = templateByName.get(step.templateName);
+    const subject = renderTemplate(tpl?.subject ?? step.fallbackSubject, vars);
+    const body = renderTemplate(tpl?.body ?? step.fallbackBody, vars);
 
     try {
       await sendEmail({ fromName: sender.fromName, fromEmail: sender.fromEmail, to: c.email, subject, body });
@@ -113,12 +123,13 @@ export async function GET(req: NextRequest) {
           body,
           status: "SENT",
           kind: "REMINDER",
+          step: step.key,
         },
       });
       await prisma.activity.create({
-        data: { customerId: c.id, type: "EMAIL", body: `Automatic reminder: ${subject}` },
+        data: { customerId: c.id, type: "EMAIL", body: `Reminder (${step.key}): ${subject}` },
       });
-      results.push({ customer: c.name, status: "sent" });
+      results.push({ customer: c.name, status: `sent (${step.key})` });
     } catch (e) {
       const message = e instanceof Error ? e.message : "failed";
       await prisma.emailLog.create({
@@ -132,6 +143,7 @@ export async function GET(req: NextRequest) {
           status: "FAILED",
           error: message,
           kind: "REMINDER",
+          step: step.key,
         },
       });
       results.push({ customer: c.name, status: `failed: ${message}` });

@@ -7,6 +7,7 @@ const LINKS = [
   { href: "/", label: "Overview", icon: "▦" },
   { href: "/customers", label: "Clients", icon: "☺" },
   { href: "/tasks", label: "Tasks", icon: "✓" },
+  { href: "/pms", label: "PMS analytics", icon: "◫" },
   { href: "/exports", label: "Exports", icon: "↓" },
   { href: "/emails", label: "Email log", icon: "✉" },
   { href: "/templates", label: "Email templates", icon: "✎" },

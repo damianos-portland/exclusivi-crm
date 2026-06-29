@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatMoney } from "@/lib/money";
-import { computeCharge, aggregateCustomer } from "@/lib/finance";
+import {
+  computeCharge,
+  aggregateCustomer,
+  forecastCollections,
+  type ChargeLike,
+  type RecurringLike,
+} from "@/lib/finance";
 import { StatusBadge } from "@/components/StatusBadge";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +18,7 @@ export default async function DashboardPage() {
 
   const [customers, monthPayments, openTasks] = await Promise.all([
     prisma.customer.findMany({
-      include: { charges: { include: { receipts: true } } },
+      include: { charges: { include: { receipts: true } }, recurring: true },
     }),
     prisma.payment.aggregate({
       _sum: { amount: true },
@@ -47,6 +53,17 @@ export default async function DashboardPage() {
 
   const monthRevenue = monthPayments._sum.amount ?? 0;
 
+  // Cash-flow forecast (next 90 days) from open charges + recurring
+  const allCharges: ChargeLike[] = customers.flatMap((c) => c.charges);
+  const allRecurring: RecurringLike[] = customers.flatMap((c) => c.recurring);
+  const forecast = forecastCollections(allCharges, allRecurring, now);
+  const forecastBuckets: { key: "overdue" | "d0_30" | "d31_60" | "d61_90"; label: string }[] = [
+    { key: "overdue", label: "Overdue" },
+    { key: "d0_30", label: "Next 30 days" },
+    { key: "d31_60", label: "31–60 days" },
+    { key: "d61_90", label: "61–90 days" },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -74,6 +91,27 @@ export default async function DashboardPage() {
           sub={`of ${formatMoney(agreed)}`}
           tone="default"
         />
+      </div>
+
+      {/* Cash-flow forecast */}
+      <div className="card">
+        <div className="flex items-center justify-between border-b px-5 py-4">
+          <h2 className="font-semibold">Expected collections</h2>
+          <span className="text-xs text-[var(--muted)]">next 90 days · {formatMoney(forecast.total)}</span>
+        </div>
+        <div className="grid grid-cols-2 gap-px bg-[var(--border)] sm:grid-cols-4">
+          {forecastBuckets.map((b) => (
+            <div key={b.key} className="bg-[var(--surface)] p-4 text-center">
+              <div className="text-xs text-[var(--muted)]">{b.label}</div>
+              <div
+                className="mt-1 font-semibold"
+                style={{ color: b.key === "overdue" ? "#dc2626" : "inherit" }}
+              >
+                {formatMoney(forecast[b.key])}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

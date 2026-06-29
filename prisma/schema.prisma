@@ -122,6 +122,7 @@ model EmailLog {
   status     String    @default("SENT") // SENT | FAILED
   error      String?
   kind       String    @default("MANUAL") // MANUAL | REMINDER | INBOUND
+  step       String? // dunning sequence step: GENTLE | FIRM | FINAL
   messageId  String?   @unique // IMAP message-id (για dedup εισερχομένων)
   sentAt     DateTime  @default(now())
 }

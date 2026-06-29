@@ -51,6 +51,18 @@ async function main() {
             "Dear {{contact}},\n\nThis is a friendly reminder that there is an outstanding balance of {{amount}} for {{name}}, due on {{due}}.\n\nPlease arrange settlement at your earliest convenience.\n\nBest regards,\nExclusivi",
         },
         {
+          name: "Payment reminder — firm",
+          subject: "Overdue payment — action needed",
+          body:
+            "Dear {{contact}},\n\nOur records show {{amount}} remains overdue for {{name}} (due {{due}}). We kindly ask you to settle this within the next few days.\n\nBest regards,\nExclusivi",
+        },
+        {
+          name: "Payment reminder — final",
+          subject: "Final notice — overdue payment",
+          body:
+            "Dear {{contact}},\n\nThis is a final notice regarding the overdue amount of {{amount}} for {{name}} (due {{due}}). Please settle immediately to avoid further action.\n\nBest regards,\nExclusivi",
+        },
+        {
           name: "Payment received — thank you",
           subject: "We received your payment — thank you!",
           body:
