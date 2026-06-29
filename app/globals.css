@@ -71,3 +71,21 @@ body {
     @apply px-4 py-3 text-sm align-middle;
   }
 }
+
+/* ── Print (invoice/receipt) ─────────────────────────────────────── */
+@media print {
+  aside,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  main {
+    padding: 0 !important;
+  }
+  .print-sheet {
+    box-shadow: none !important;
+    border: none !important;
+  }
+}

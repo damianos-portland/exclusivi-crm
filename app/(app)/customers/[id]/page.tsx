@@ -208,6 +208,12 @@ export default async function CustomerPage({
                         >
                           <ChargeFields d={charge} />
                         </FormModal>
+                        <Link
+                          href={`/customers/${customer.id}/invoice/${charge.id}`}
+                          className="btn-ghost btn-sm"
+                        >
+                          Τιμολόγιο
+                        </Link>
                         <ConfirmButton
                           action={deleteCharge.bind(null, charge.id, customer.id)}
                           message="Διαγραφή χρέωσης και των εισπράξεών της;"

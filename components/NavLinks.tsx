@@ -7,7 +7,9 @@ const LINKS = [
   { href: "/", label: "Επισκόπηση", icon: "▦" },
   { href: "/customers", label: "Πελάτες", icon: "☺" },
   { href: "/tasks", label: "Εκκρεμότητες", icon: "✓" },
-  { href: "/templates", label: "Email Templates", icon: "✉" },
+  { href: "/exports", label: "Εξαγωγές", icon: "↓" },
+  { href: "/emails", label: "Ιστορικό Email", icon: "✉" },
+  { href: "/templates", label: "Email Templates", icon: "✎" },
   { href: "/senders", label: "Αποστολείς", icon: "↗" },
 ];
 
