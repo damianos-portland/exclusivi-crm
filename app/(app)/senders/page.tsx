@@ -12,12 +12,12 @@ export default async function SendersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Αποστολείς</h1>
+          <h1 className="text-2xl font-semibold">Senders</h1>
           <p className="text-sm text-[var(--muted)]">
-            Διευθύνσεις «από» που μπορείς να διαλέξεις κατά την αποστολή email
+            “From” addresses you can choose when sending email
           </p>
         </div>
-        <FormModal trigger="+ Νέος αποστολέας" title="Νέος αποστολέας" action={saveSender}>
+        <FormModal trigger="+ New sender" title="New sender" action={saveSender}>
           <SenderFields />
         </FormModal>
       </div>
@@ -26,8 +26,8 @@ export default async function SendersPage() {
         <table className="w-full">
           <thead className="border-b bg-slate-50">
             <tr>
-              <th className="th">Ετικέτα</th>
-              <th className="th">Όνομα</th>
+              <th className="th">Label</th>
+              <th className="th">Name</th>
               <th className="th">Email</th>
               <th className="th"></th>
             </tr>
@@ -38,7 +38,7 @@ export default async function SendersPage() {
                 <td className="td font-medium">
                   {s.label}
                   {s.isDefault && (
-                    <span className="ml-2 badge bg-indigo-50 text-indigo-600">προεπιλογή</span>
+                    <span className="ml-2 badge bg-indigo-50 text-indigo-600">default</span>
                   )}
                 </td>
                 <td className="td">{s.fromName}</td>
@@ -47,22 +47,19 @@ export default async function SendersPage() {
                   <div className="flex justify-end gap-2">
                     {!s.isDefault && (
                       <form action={setDefaultSender.bind(null, s.id)}>
-                        <button className="btn-ghost btn-sm">Ορισμός προεπιλογής</button>
+                        <button className="btn-ghost btn-sm">Set default</button>
                       </form>
                     )}
                     <FormModal
-                      trigger="Επεξεργασία"
-                      title="Επεξεργασία αποστολέα"
+                      trigger="Edit"
+                      title="Edit sender"
                       action={saveSender}
                       triggerClassName="btn-ghost btn-sm"
                     >
                       <input type="hidden" name="id" value={s.id} />
                       <SenderFields d={s} />
                     </FormModal>
-                    <ConfirmButton
-                      action={deleteSender.bind(null, s.id)}
-                      message="Διαγραφή αποστολέα;"
-                    >
+                    <ConfirmButton action={deleteSender.bind(null, s.id)} message="Delete sender?">
                       ✕
                     </ConfirmButton>
                   </div>
@@ -72,7 +69,7 @@ export default async function SendersPage() {
             {senders.length === 0 && (
               <tr>
                 <td colSpan={4} className="td py-8 text-center text-[var(--muted)]">
-                  Δεν υπάρχουν αποστολείς.
+                  No senders yet.
                 </td>
               </tr>
             )}
@@ -81,33 +78,41 @@ export default async function SendersPage() {
       </div>
 
       <div className="card p-4 text-xs text-[var(--muted)]">
-        <strong className="text-[var(--foreground)]">Σημείωση:</strong> Για να φεύγουν τα email
-        μέσω Gmail/Workspace, όρισε στο <code>.env</code> τα <code>SMTP_USER</code> και{" "}
-        <code>SMTP_PASS</code> (App Password). Οι διευθύνσεις «από» πρέπει να είναι ρυθμισμένες ως
-        «send-as» στον λογαριασμό Google.
+        <strong className="text-[var(--foreground)]">Note:</strong> To send email via
+        Gmail/Workspace, set <code>SMTP_USER</code> and <code>SMTP_PASS</code> (App Password) in{" "}
+        <code>.env</code>. “From” addresses must be configured as “send-as” on the Google account.
       </div>
     </div>
   );
 }
 
-function SenderFields({
-  d,
-}: {
-  d?: { label: string; fromName: string; fromEmail: string };
-}) {
+function SenderFields({ d }: { d?: { label: string; fromName: string; fromEmail: string } }) {
   return (
     <>
       <div>
-        <label className="label">Ετικέτα *</label>
-        <input name="label" required defaultValue={d?.label ?? ""} placeholder="Λογιστήριο" className="input" />
+        <label className="label">Label *</label>
+        <input name="label" required defaultValue={d?.label ?? ""} placeholder="Accounting" className="input" />
       </div>
       <div>
-        <label className="label">Εμφανιζόμενο όνομα *</label>
-        <input name="fromName" required defaultValue={d?.fromName ?? ""} placeholder="Exclusivi — Λογιστήριο" className="input" />
+        <label className="label">Display name *</label>
+        <input
+          name="fromName"
+          required
+          defaultValue={d?.fromName ?? ""}
+          placeholder="Exclusivi"
+          className="input"
+        />
       </div>
       <div>
-        <label className="label">Email αποστολέα *</label>
-        <input name="fromEmail" type="email" required defaultValue={d?.fromEmail ?? ""} placeholder="accounts@exclusivi.gr" className="input" />
+        <label className="label">Sender email *</label>
+        <input
+          name="fromEmail"
+          type="email"
+          required
+          defaultValue={d?.fromEmail ?? ""}
+          placeholder="bk@exclusivi.com"
+          className="input"
+        />
       </div>
     </>
   );

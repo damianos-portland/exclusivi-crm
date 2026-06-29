@@ -18,8 +18,8 @@ export function StatusBadge({ status }: { status: PaymentStatus }) {
 
 const CUSTOMER_STATUS: Record<string, { label: string; color: string }> = {
   LEAD: { label: "Lead", color: "#0891b2" },
-  ACTIVE: { label: "Ενεργός", color: "#16a34a" },
-  CHURNED: { label: "Ανενεργός", color: "#64748b" },
+  ACTIVE: { label: "Active", color: "#16a34a" },
+  CHURNED: { label: "Churned", color: "#64748b" },
 };
 
 export function CustomerStatusBadge({ status }: { status: string }) {

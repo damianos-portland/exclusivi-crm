@@ -24,13 +24,13 @@ export default async function InvoicePage({
   const comp = computeCharge(charge, now);
   const vatAmount = withVat(charge.amount, charge.vatRate) - charge.amount;
   const isReceipt = comp.remaining <= 0;
-  const docTitle = isReceipt ? "ΑΠΟΔΕΙΞΗ" : "ΤΙΜΟΛΟΓΙΟ";
+  const docTitle = isReceipt ? "RECEIPT" : "INVOICE";
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between no-print">
         <Link href={`/customers/${id}`} className="text-sm text-[var(--muted)] hover:underline">
-          ← Πίσω στον πελάτη
+          ← Back to client
         </Link>
         <PrintButton />
       </div>
@@ -49,27 +49,23 @@ export default async function InvoicePage({
           </div>
           <div className="text-right">
             <h1 className="text-2xl font-bold tracking-wide">{docTitle}</h1>
-            <p className="mt-1 text-xs text-[var(--muted)]">
-              Αρ.: {charge.id.slice(-8).toUpperCase()}
-            </p>
-            <p className="text-xs text-[var(--muted)]">Ημ/νία: {formatDate(now)}</p>
+            <p className="mt-1 text-xs text-[var(--muted)]">No.: {charge.id.slice(-8).toUpperCase()}</p>
+            <p className="text-xs text-[var(--muted)]">Date: {formatDate(now)}</p>
           </div>
         </div>
 
         {/* Parties */}
         <div className="grid grid-cols-2 gap-6 py-6 text-sm">
           <div>
-            <div className="mb-1 text-xs font-semibold uppercase text-[var(--muted)]">Προς</div>
+            <div className="mb-1 text-xs font-semibold uppercase text-[var(--muted)]">Bill to</div>
             <div className="font-medium">{charge.customer.name}</div>
             {charge.customer.contactPerson && <div>{charge.customer.contactPerson}</div>}
-            {charge.customer.vatNumber && <div>ΑΦΜ: {charge.customer.vatNumber}</div>}
+            {charge.customer.vatNumber && <div>VAT: {charge.customer.vatNumber}</div>}
             {charge.customer.address && <div>{charge.customer.address}</div>}
             {charge.customer.email && <div>{charge.customer.email}</div>}
           </div>
           <div className="text-right">
-            <div className="mb-1 text-xs font-semibold uppercase text-[var(--muted)]">
-              Ημ/νία λήξης
-            </div>
+            <div className="mb-1 text-xs font-semibold uppercase text-[var(--muted)]">Due date</div>
             <div className="font-medium">{formatDate(charge.dueDate)}</div>
           </div>
         </div>
@@ -78,8 +74,8 @@ export default async function InvoicePage({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-y bg-slate-50">
-              <th className="px-3 py-2 text-left font-semibold">Περιγραφή</th>
-              <th className="px-3 py-2 text-right font-semibold">Καθαρή αξία</th>
+              <th className="px-3 py-2 text-left font-semibold">Description</th>
+              <th className="px-3 py-2 text-right font-semibold">Net amount</th>
             </tr>
           </thead>
           <tbody>
@@ -92,29 +88,44 @@ export default async function InvoicePage({
 
         {/* Totals */}
         <div className="mt-4 ml-auto w-64 space-y-1 text-sm">
-          <Row label="Καθαρή αξία" value={formatMoney(charge.amount, charge.currency)} />
-          <Row label={`ΦΠΑ ${charge.vatRate}%`} value={formatMoney(vatAmount, charge.currency)} />
+          <Row label="Net amount" value={formatMoney(charge.amount, charge.currency)} />
+          <Row label={`VAT ${charge.vatRate}%`} value={formatMoney(vatAmount, charge.currency)} />
           <div className="flex justify-between border-t pt-2 text-base font-semibold">
-            <span>Σύνολο</span>
+            <span>Total</span>
             <span>{formatMoney(comp.gross, charge.currency)}</span>
           </div>
           {comp.paid > 0 && (
-            <Row label="Εισπραχθέντα" value={`− ${formatMoney(comp.paid, charge.currency)}`} />
+            <Row label="Paid" value={`− ${formatMoney(comp.paid, charge.currency)}`} />
           )}
           <div
             className="flex justify-between border-t pt-2 font-semibold"
             style={{ color: comp.remaining > 0 ? "#dc2626" : "#16a34a" }}
           >
-            <span>{comp.remaining > 0 ? "Υπόλοιπο" : "Εξοφλήθηκε"}</span>
+            <span>{comp.remaining > 0 ? "Balance due" : "Paid in full"}</span>
             <span>{formatMoney(comp.remaining, charge.currency)}</span>
           </div>
         </div>
+
+        {/* Pay online */}
+        {charge.payLink && comp.remaining > 0 && (
+          <div className="mt-6 text-center">
+            <a
+              href={charge.payLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary btn-sm"
+            >
+              Pay online →
+            </a>
+            <p className="mt-1 break-all text-[10px] text-[var(--muted)]">{charge.payLink}</p>
+          </div>
+        )}
 
         {/* Payments history */}
         {charge.receipts.length > 0 && (
           <div className="mt-6 border-t pt-4">
             <div className="mb-2 text-xs font-semibold uppercase text-[var(--muted)]">
-              Ιστορικό πληρωμών
+              Payment history
             </div>
             <ul className="space-y-1 text-sm">
               {charge.receipts.map((r) => (
@@ -130,7 +141,7 @@ export default async function InvoicePage({
         )}
 
         <p className="mt-8 border-t pt-4 text-center text-xs text-[var(--muted)]">
-          Εσωτερικό παραστατικό — δεν αποτελεί επίσημο φορολογικό στοιχείο (myDATA).
+          Internal document — not an official tax invoice (myDATA).
         </p>
       </div>
     </div>

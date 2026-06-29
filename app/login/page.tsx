@@ -13,7 +13,7 @@ export default async function LoginPage() {
           </div>
           <h1 className="text-xl font-semibold">Exclusivi CRM</h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Διαχείριση πελατών & πληρωμών
+            Client & payment management
           </p>
         </div>
         <div className="card p-6">

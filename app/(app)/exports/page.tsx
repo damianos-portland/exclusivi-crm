@@ -5,10 +5,10 @@ import { agingForCharges, AGING_LABELS, type AgingBuckets } from "@/lib/finance"
 export const dynamic = "force-dynamic";
 
 const REPORTS = [
-  { type: "aging", label: "Ενηλικίωση απαιτήσεων (AR aging)", desc: "Υπόλοιπα ανά πελάτη & κλιμάκιο καθυστέρησης" },
-  { type: "vat", label: "Χρεώσεις & ΦΠΑ", desc: "Καθαρή αξία, ΦΠΑ, σύνολο, εισπραγμένα ανά χρέωση" },
-  { type: "ledger", label: "Ημερολόγιο εισπράξεων", desc: "Όλες οι εισπράξεις με ημερομηνία & τρόπο" },
-  { type: "customers", label: "Πελατολόγιο", desc: "Πλήρης λίστα πελατών με σύνολα" },
+  { type: "aging", label: "Accounts receivable aging", desc: "Outstanding balances per client & overdue bucket" },
+  { type: "vat", label: "Charges & VAT", desc: "Net, VAT, total, collected per charge" },
+  { type: "ledger", label: "Payments ledger", desc: "All payments with date & method" },
+  { type: "customers", label: "Client list", desc: "Full client list with totals" },
 ];
 
 export default async function ExportsPage() {
@@ -40,13 +40,12 @@ export default async function ExportsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Εξαγωγές & Αναφορές</h1>
+        <h1 className="text-2xl font-semibold">Exports & Reports</h1>
         <p className="text-sm text-[var(--muted)]">
-          Έτοιμες αναφορές για τον λογιστή — κατέβασέ τες σε CSV (ανοίγουν στο Excel)
+          Accountant-ready reports — download as CSV (opens in Excel)
         </p>
       </div>
 
-      {/* Download buttons */}
       <div className="grid gap-3 sm:grid-cols-2">
         {REPORTS.map((r) => (
           <a
@@ -63,14 +62,12 @@ export default async function ExportsPage() {
         ))}
       </div>
 
-      {/* AR aging on-screen */}
       <div className="card">
         <div className="flex items-center justify-between border-b px-5 py-4">
-          <h2 className="font-semibold">Ενηλικίωση απαιτήσεων</h2>
-          <span className="text-sm font-semibold">{formatMoney(totals.total)} συνολικό υπόλοιπο</span>
+          <h2 className="font-semibold">Accounts receivable aging</h2>
+          <span className="text-sm font-semibold">{formatMoney(totals.total)} total outstanding</span>
         </div>
 
-        {/* bucket totals */}
         <div className="grid grid-cols-2 gap-px bg-[var(--border)] sm:grid-cols-5">
           {bucketKeys.map((k) => (
             <div key={k} className="bg-[var(--surface)] p-4 text-center">
@@ -85,18 +82,17 @@ export default async function ExportsPage() {
           ))}
         </div>
 
-        {/* per-customer */}
         <div className="overflow-x-auto border-t">
           <table className="w-full">
             <thead className="bg-slate-50">
               <tr>
-                <th className="th">Πελάτης</th>
+                <th className="th">Client</th>
                 {bucketKeys.map((k) => (
                   <th key={k} className="th text-right">
                     {AGING_LABELS[k]}
                   </th>
                 ))}
-                <th className="th text-right">Σύνολο</th>
+                <th className="th text-right">Total</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -114,7 +110,7 @@ export default async function ExportsPage() {
               {perCustomer.length === 0 && (
                 <tr>
                   <td colSpan={7} className="td py-8 text-center text-[var(--muted)]">
-                    Κανένα ανοιχτό υπόλοιπο.
+                    No open balances.
                   </td>
                 </tr>
               )}

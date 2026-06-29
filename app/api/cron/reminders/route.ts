@@ -5,12 +5,16 @@ import { renderTemplate } from "@/lib/templates";
 import { computeCharge } from "@/lib/finance";
 import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/dates";
+import { runRecurring } from "@/lib/recurring";
+import { pollInbound } from "@/lib/inbound";
 
 export const dynamic = "force-dynamic";
 
-// Στέλνει υπενθύμιση για ληξιπρόθεσμες οφειλές.
-// Καλείται από Vercel Cron (ή χειροκίνητα). Προστασία με CRON_SECRET.
-// Δεν ξαναστέλνει σε πελάτη που έλαβε REMINDER τις τελευταίες 7 ημέρες.
+// Daily run (Vercel Cron). Does three things:
+//   1. Generates due recurring charges
+//   2. Sends payment reminders for overdue balances (max 1/week per customer)
+//   3. Polls the inbox for client replies (IMAP) and logs them
+// Protected by CRON_SECRET.
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
   if (secret) {
@@ -24,14 +28,33 @@ export async function GET(req: NextRequest) {
   const now = new Date();
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
+  // 1) Generate recurring charges first
+  const recurring = await runRecurring(now);
+
+  // 3) Poll inbound replies (best-effort; isolated from reminder failures)
+  let inbound: Awaited<ReturnType<typeof pollInbound>> | { error: string };
+  try {
+    inbound = await pollInbound();
+  } catch (e) {
+    inbound = { error: e instanceof Error ? e.message : "inbound poll failed" };
+  }
+
   const sender =
     (await prisma.sender.findFirst({ where: { isDefault: true } })) ??
     (await prisma.sender.findFirst());
-  const template = await prisma.emailTemplate.findFirst({
-    where: { name: { contains: "Υπενθύμιση" } },
-  });
+  const template =
+    (await prisma.emailTemplate.findFirst({ where: { name: { contains: "Reminder" } } })) ??
+    (await prisma.emailTemplate.findFirst({ where: { name: { contains: "reminder" } } })) ??
+    (await prisma.emailTemplate.findFirst({ where: { name: { contains: "Υπενθύμιση" } } }));
 
-  if (!sender) return NextResponse.json({ error: "no sender configured" }, { status: 400 });
+  if (!sender) {
+    return NextResponse.json({
+      ran: now.toISOString(),
+      recurring,
+      inbound,
+      reminders: { skipped: "no sender configured" },
+    });
+  }
 
   const customers = await prisma.customer.findMany({
     where: { email: { not: null } },
@@ -93,7 +116,7 @@ export async function GET(req: NextRequest) {
         },
       });
       await prisma.activity.create({
-        data: { customerId: c.id, type: "EMAIL", body: `Αυτόματη υπενθύμιση: ${subject}` },
+        data: { customerId: c.id, type: "EMAIL", body: `Automatic reminder: ${subject}` },
       });
       results.push({ customer: c.name, status: "sent" });
     } catch (e) {
@@ -115,5 +138,10 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ran: now.toISOString(), count: results.length, results });
+  return NextResponse.json({
+    ran: now.toISOString(),
+    recurring,
+    inbound,
+    reminders: { count: results.length, results },
+  });
 }

@@ -4,13 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
-  { href: "/", label: "Επισκόπηση", icon: "▦" },
-  { href: "/customers", label: "Πελάτες", icon: "☺" },
-  { href: "/tasks", label: "Εκκρεμότητες", icon: "✓" },
-  { href: "/exports", label: "Εξαγωγές", icon: "↓" },
-  { href: "/emails", label: "Ιστορικό Email", icon: "✉" },
-  { href: "/templates", label: "Email Templates", icon: "✎" },
-  { href: "/senders", label: "Αποστολείς", icon: "↗" },
+  { href: "/", label: "Overview", icon: "▦" },
+  { href: "/customers", label: "Clients", icon: "☺" },
+  { href: "/tasks", label: "Tasks", icon: "✓" },
+  { href: "/exports", label: "Exports", icon: "↓" },
+  { href: "/emails", label: "Email log", icon: "✉" },
+  { href: "/templates", label: "Email templates", icon: "✎" },
+  { href: "/senders", label: "Senders", icon: "↗" },
 ];
 
 export function NavLinks() {

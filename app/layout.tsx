@@ -10,14 +10,14 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Exclusivi CRM",
-  description: "Διαχείριση πελατών & πληρωμών — Exclusivi",
+  description: "Client & payment management — Exclusivi",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="el" className={`${inter.variable} h-full`}>
+    <html lang="en" className={`${inter.variable} h-full`}>
       <body className="min-h-full">{children}</body>
     </html>
   );

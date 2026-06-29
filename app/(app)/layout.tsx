@@ -27,7 +27,7 @@ export default async function AppLayout({
             <div className="truncate">{user.email}</div>
           </div>
           <form action={logout}>
-            <button className="btn-ghost btn-sm w-full">Αποσύνδεση</button>
+            <button className="btn-ghost btn-sm w-full">Sign out</button>
           </form>
         </div>
       </aside>

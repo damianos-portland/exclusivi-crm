@@ -15,19 +15,19 @@ export function CustomerFields({ d = {} }: { d?: Defaults }) {
     <>
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
-          <label className="label">Επωνυμία / Όνομα *</label>
+          <label className="label">Company / Name *</label>
           <input name="name" required defaultValue={d.name ?? ""} className="input" />
         </div>
         <div>
-          <label className="label">Υπεύθυνος επικοινωνίας</label>
+          <label className="label">Contact person</label>
           <input name="contactPerson" defaultValue={d.contactPerson ?? ""} className="input" />
         </div>
         <div>
-          <label className="label">Κατάσταση</label>
+          <label className="label">Status</label>
           <select name="status" defaultValue={d.status ?? "ACTIVE"} className="input">
             <option value="LEAD">Lead</option>
-            <option value="ACTIVE">Ενεργός</option>
-            <option value="CHURNED">Ανενεργός</option>
+            <option value="ACTIVE">Active</option>
+            <option value="CHURNED">Churned</option>
           </select>
         </div>
         <div>
@@ -35,15 +35,15 @@ export function CustomerFields({ d = {} }: { d?: Defaults }) {
           <input name="email" type="email" defaultValue={d.email ?? ""} className="input" />
         </div>
         <div>
-          <label className="label">Τηλέφωνο</label>
+          <label className="label">Phone</label>
           <input name="phone" defaultValue={d.phone ?? ""} className="input" />
         </div>
         <div>
-          <label className="label">ΑΦΜ</label>
+          <label className="label">VAT number</label>
           <input name="vatNumber" defaultValue={d.vatNumber ?? ""} className="input" />
         </div>
         <div>
-          <label className="label">Διεύθυνση</label>
+          <label className="label">Address</label>
           <input name="address" defaultValue={d.address ?? ""} className="input" />
         </div>
         <div>
@@ -51,12 +51,12 @@ export function CustomerFields({ d = {} }: { d?: Defaults }) {
           <input
             name="pms"
             defaultValue={d.pms ?? ""}
-            placeholder="π.χ. Opera, Protel, Cloudbeds, Mews…"
+            placeholder="e.g. Opera, Protel, Cloudbeds, Mews…"
             className="input"
           />
         </div>
         <div className="col-span-2">
-          <label className="label">Σημειώσεις</label>
+          <label className="label">Notes</label>
           <textarea name="notes" rows={2} defaultValue={d.notes ?? ""} className="input" />
         </div>
       </div>

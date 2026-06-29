@@ -16,7 +16,7 @@ export function FormModal({
   title,
   action,
   children,
-  submitLabel = "Αποθήκευση",
+  submitLabel = "Save",
   triggerClassName = "btn-primary btn-sm",
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -37,7 +37,7 @@ export function FormModal({
           const digest = String((err as { digest?: string }).digest);
           if (digest.startsWith("NEXT_REDIRECT")) return;
         }
-        setError(err instanceof Error ? err.message : "Κάτι πήγε στραβά.");
+        setError(err instanceof Error ? err.message : "Something went wrong.");
       }
     });
   }
@@ -82,7 +82,7 @@ export function FormModal({
                 onClick={() => setOpen(false)}
                 className="btn-ghost btn-sm"
               >
-                Άκυρο
+                Cancel
               </button>
               <button type="submit" disabled={pending} className="btn-primary btn-sm">
                 {pending ? "…" : submitLabel}

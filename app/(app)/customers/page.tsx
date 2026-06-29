@@ -38,14 +38,14 @@ export default async function CustomersPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Πελάτες</h1>
-          <p className="text-sm text-[var(--muted)]">{customers.length} εγγραφές</p>
+          <h1 className="text-2xl font-semibold">Clients</h1>
+          <p className="text-sm text-[var(--muted)]">{customers.length} records</p>
         </div>
         <FormModal
-          trigger="+ Νέος πελάτης"
-          title="Νέος πελάτης"
+          trigger="+ New client"
+          title="New client"
           action={createCustomer}
-          submitLabel="Δημιουργία"
+          submitLabel="Create"
         >
           <CustomerFields />
         </FormModal>
@@ -55,7 +55,7 @@ export default async function CustomersPage({
         <input
           name="q"
           defaultValue={q ?? ""}
-          placeholder="Αναζήτηση: επωνυμία, ΑΦΜ, email…"
+          placeholder="Search: name, VAT, email…"
           className="input"
         />
       </form>
@@ -65,12 +65,12 @@ export default async function CustomersPage({
           <table className="w-full">
             <thead className="border-b bg-slate-50">
               <tr>
-                <th className="th">Πελάτης</th>
-                <th className="th">Επικοινωνία</th>
+                <th className="th">Client</th>
+                <th className="th">Contact</th>
                 <th className="th">PMS</th>
-                <th className="th">Κατάσταση</th>
-                <th className="th text-right">Υπόλοιπο</th>
-                <th className="th text-right">Ληξιπρόθεσμα</th>
+                <th className="th">Status</th>
+                <th className="th text-right">Outstanding</th>
+                <th className="th text-right">Overdue</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -118,7 +118,7 @@ export default async function CustomersPage({
               {customers.length === 0 && (
                 <tr>
                   <td colSpan={6} className="td py-10 text-center text-[var(--muted)]">
-                    Δεν βρέθηκαν πελάτες.
+                    No clients found.
                   </td>
                 </tr>
               )}

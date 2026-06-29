@@ -4,7 +4,7 @@ import { useTransition } from "react";
 
 export function ConfirmButton({
   action,
-  message = "Είσαι σίγουρος;",
+  message = "Are you sure?",
   children,
   className = "btn-danger btn-sm",
 }: {

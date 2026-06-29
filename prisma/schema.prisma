@@ -34,6 +34,7 @@ model Customer {
   updatedAt     DateTime @updatedAt
 
   charges    Charge[]
+  recurring  RecurringCharge[]
   tasks      Task[]
   activities Activity[]
   emails     EmailLog[]
@@ -44,16 +45,36 @@ model Charge {
   id         String    @id @default(cuid())
   customerId String
   customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  title      String // π.χ. "Συμβόλαιο 2026" / "Προκαταβολή"
-  amount     Int // συμφωνηθέν ποσό σε λεπτά (καθαρή αξία)
-  vatRate    Int       @default(24) // ΦΠΑ %
+  title      String
+  amount     Int // agreed amount in cents (net)
+  vatRate    Int       @default(24) // VAT %
   currency   String    @default("EUR")
   dueDate    DateTime?
-  status     String    @default("PENDING") // PENDING | PARTIAL | PAID  (OVERDUE υπολογίζεται από dueDate)
+  payLink    String? // optional online payment link (Stripe/Viva/bank)
+  status     String    @default("PENDING") // PENDING | PARTIAL | PAID  (OVERDUE derived from dueDate)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
   receipts Payment[]
+}
+
+// Recurring charge — template that auto-generates a Charge on schedule (cron).
+model RecurringCharge {
+  id              String    @id @default(cuid())
+  customerId      String
+  customer        Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  title           String
+  amount          Int // net amount in cents
+  vatRate         Int       @default(24)
+  currency        String    @default("EUR")
+  interval        String    @default("MONTHLY") // MONTHLY | QUARTERLY | YEARLY
+  dueDays         Int       @default(14) // due-date offset on the generated charge
+  payLink         String?
+  nextRunAt       DateTime
+  active          Boolean   @default(true)
+  lastGeneratedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 // Είσπραξη έναντι μιας χρέωσης (ledger).
@@ -100,7 +121,8 @@ model EmailLog {
   body       String
   status     String    @default("SENT") // SENT | FAILED
   error      String?
-  kind       String    @default("MANUAL") // MANUAL | REMINDER
+  kind       String    @default("MANUAL") // MANUAL | REMINDER | INBOUND
+  messageId  String?   @unique // IMAP message-id (για dedup εισερχομένων)
   sentAt     DateTime  @default(now())
 }
 

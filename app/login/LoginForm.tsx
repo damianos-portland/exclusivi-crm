@@ -23,7 +23,7 @@ export function LoginForm() {
       </div>
       <div>
         <label className="label" htmlFor="password">
-          Κωδικός
+          Password
         </label>
         <input
           id="password"
@@ -41,7 +41,7 @@ export function LoginForm() {
         </p>
       )}
       <button type="submit" disabled={pending} className="btn-primary w-full">
-        {pending ? "Σύνδεση…" : "Σύνδεση"}
+        {pending ? "Signing in…" : "Sign in"}
       </button>
     </form>
   );

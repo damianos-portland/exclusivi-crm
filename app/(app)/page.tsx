@@ -26,7 +26,6 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  // Συγκεντρωτικά
   let agreed = 0,
     paid = 0,
     outstanding = 0,
@@ -39,7 +38,6 @@ export default async function DashboardPage() {
     overdue += a.overdue;
   }
 
-  // Ληξιπρόθεσμες χρεώσεις (για τη λίστα «χρειάζονται προσοχή»)
   const overdueCharges = customers
     .flatMap((c) =>
       c.charges.map((ch) => ({ customer: c, charge: ch, comp: computeCharge(ch, now) }))
@@ -53,46 +51,40 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Επισκόπηση</h1>
-          <p className="text-sm text-[var(--muted)]">
-            Συνολική εικόνα πελατών & πληρωμών
-          </p>
+          <h1 className="text-2xl font-semibold">Overview</h1>
+          <p className="text-sm text-[var(--muted)]">Clients & payments at a glance</p>
         </div>
         <Link href="/customers" className="btn-primary btn-sm">
-          + Νέος πελάτης
+          + New client
         </Link>
       </div>
 
-      {/* KPIs */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Kpi label="Αναμενόμενα (υπόλοιπο)" value={formatMoney(outstanding)} tone="default" />
+        <Kpi label="Outstanding" value={formatMoney(outstanding)} tone="default" />
         <Kpi
-          label="Ληξιπρόθεσμα"
+          label="Overdue"
           value={formatMoney(overdue)}
-          sub={`${overdueCharges.length} χρεώσεις`}
+          sub={`${overdueCharges.length} charges`}
           tone="danger"
         />
-        <Kpi label="Εισπράξεις μήνα" value={formatMoney(monthRevenue)} tone="success" />
+        <Kpi label="Collected this month" value={formatMoney(monthRevenue)} tone="success" />
         <Kpi
-          label="Συνολικά εισπραγμένα"
+          label="Total collected"
           value={formatMoney(paid)}
-          sub={`από ${formatMoney(agreed)}`}
+          sub={`of ${formatMoney(agreed)}`}
           tone="default"
         />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Χρειάζονται προσοχή */}
         <div className="card lg:col-span-2">
           <div className="flex items-center justify-between border-b px-5 py-4">
-            <h2 className="font-semibold">⚠ Χρειάζονται προσοχή</h2>
-            <span className="text-xs text-[var(--muted)]">
-              {overdueCharges.length} ληξιπρόθεσμα
-            </span>
+            <h2 className="font-semibold">⚠ Needs attention</h2>
+            <span className="text-xs text-[var(--muted)]">{overdueCharges.length} overdue</span>
           </div>
           {overdueCharges.length === 0 ? (
             <p className="px-5 py-8 text-center text-sm text-[var(--muted)]">
-              Καμία ληξιπρόθεσμη οφειλή 🎉
+              No overdue balances 🎉
             </p>
           ) : (
             <div className="divide-y">
@@ -105,7 +97,7 @@ export default async function DashboardPage() {
                   <div>
                     <div className="font-medium">{customer.name}</div>
                     <div className="text-xs text-[var(--muted)]">
-                      {charge.title} · {comp.daysOverdue} ημέρες καθυστέρηση
+                      {charge.title} · {comp.daysOverdue} days overdue
                     </div>
                   </div>
                   <div className="text-right">
@@ -120,18 +112,15 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* Εκκρεμότητες */}
         <div className="card">
           <div className="flex items-center justify-between border-b px-5 py-4">
-            <h2 className="font-semibold">Εκκρεμότητες</h2>
+            <h2 className="font-semibold">Tasks</h2>
             <Link href="/tasks" className="text-xs text-[var(--accent)]">
-              Όλες →
+              All →
             </Link>
           </div>
           {openTasks.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-[var(--muted)]">
-              Καμία εκκρεμότητα
-            </p>
+            <p className="px-5 py-8 text-center text-sm text-[var(--muted)]">No open tasks</p>
           ) : (
             <ul className="divide-y">
               {openTasks.map((t) => (
@@ -140,8 +129,8 @@ export default async function DashboardPage() {
                   <div className="text-xs text-[var(--muted)]">
                     {t.customer ? t.customer.name + " · " : ""}
                     {t.dueDate
-                      ? new Date(t.dueDate).toLocaleDateString("el-GR")
-                      : "χωρίς προθεσμία"}
+                      ? new Date(t.dueDate).toLocaleDateString("en-GB")
+                      : "no due date"}
                   </div>
                 </li>
               ))}

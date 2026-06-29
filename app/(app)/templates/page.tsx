@@ -13,12 +13,12 @@ export default async function TemplatesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Email Templates</h1>
+          <h1 className="text-2xl font-semibold">Email templates</h1>
           <p className="text-sm text-[var(--muted)]">
-            Έτοιμα μηνύματα με μεταβλητές που συμπληρώνονται αυτόματα ανά πελάτη
+            Ready-made messages with variables that auto-fill per client
           </p>
         </div>
-        <FormModal trigger="+ Νέο template" title="Νέο template" action={saveTemplate}>
+        <FormModal trigger="+ New template" title="New template" action={saveTemplate}>
           <TemplateFields />
         </FormModal>
       </div>
@@ -35,18 +35,15 @@ export default async function TemplatesPage() {
               </div>
               <div className="flex gap-2">
                 <FormModal
-                  trigger="Επεξεργασία"
-                  title="Επεξεργασία template"
+                  trigger="Edit"
+                  title="Edit template"
                   action={saveTemplate}
                   triggerClassName="btn-ghost btn-sm"
                 >
                   <input type="hidden" name="id" value={t.id} />
                   <TemplateFields d={t} />
                 </FormModal>
-                <ConfirmButton
-                  action={deleteTemplate.bind(null, t.id)}
-                  message="Διαγραφή template;"
-                >
+                <ConfirmButton action={deleteTemplate.bind(null, t.id)} message="Delete template?">
                   ✕
                 </ConfirmButton>
               </div>
@@ -57,7 +54,7 @@ export default async function TemplatesPage() {
           </div>
         ))}
         {templates.length === 0 && (
-          <p className="text-sm text-[var(--muted)]">Δεν υπάρχουν templates ακόμη.</p>
+          <p className="text-sm text-[var(--muted)]">No templates yet.</p>
         )}
       </div>
     </div>
@@ -68,7 +65,7 @@ function VariableHelp() {
   return (
     <div className="card p-4">
       <p className="mb-2 text-xs font-medium text-[var(--muted)]">
-        Διαθέσιμες μεταβλητές (γράψ' τες μέσα σε διπλά άγκιστρα):
+        Available variables (wrap them in double braces):
       </p>
       <div className="flex flex-wrap gap-2">
         {TEMPLATE_VARIABLES.map((v) => (
@@ -85,29 +82,25 @@ function VariableHelp() {
   );
 }
 
-function TemplateFields({
-  d,
-}: {
-  d?: { name: string; subject: string; body: string };
-}) {
+function TemplateFields({ d }: { d?: { name: string; subject: string; body: string } }) {
   return (
     <>
       <div>
-        <label className="label">Όνομα template *</label>
+        <label className="label">Template name *</label>
         <input name="name" required defaultValue={d?.name ?? ""} className="input" />
       </div>
       <div>
-        <label className="label">Θέμα email *</label>
+        <label className="label">Email subject *</label>
         <input name="subject" required defaultValue={d?.subject ?? ""} className="input" />
       </div>
       <div>
-        <label className="label">Μήνυμα</label>
+        <label className="label">Message</label>
         <textarea
           name="body"
           rows={9}
           defaultValue={d?.body ?? ""}
           className="input font-mono text-[13px]"
-          placeholder="Αγαπητέ/ή {{contact}}, …"
+          placeholder="Dear {{contact}}, …"
         />
       </div>
     </>

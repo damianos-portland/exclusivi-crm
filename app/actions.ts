@@ -22,11 +22,11 @@ export async function login(
 ): Promise<{ error?: string }> {
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const password = String(formData.get("password") || "");
-  if (!email || !password) return { error: "Συμπλήρωσε email και κωδικό." };
+  if (!email || !password) return { error: "Enter email and password." };
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || !verifyPassword(password, user.password)) {
-    return { error: "Λάθος στοιχεία σύνδεσης." };
+    return { error: "Invalid login credentials." };
   }
   await createSession({ userId: user.id, email: user.email, name: user.name });
   redirect("/");
@@ -92,10 +92,11 @@ export async function addCharge(customerId: string, formData: FormData) {
       amount,
       vatRate: Number(formData.get("vatRate") || 24),
       dueDate: date(formData.get("dueDate")),
+      payLink: str(formData.get("payLink")),
     },
   });
   await prisma.activity.create({
-    data: { customerId, type: "STATUS", body: `Νέα χρέωση: ${title}` },
+    data: { customerId, type: "STATUS", body: `New charge: ${title}` },
   });
   revalidatePath(`/customers/${customerId}`);
   revalidatePath("/");
@@ -110,6 +111,7 @@ export async function updateCharge(chargeId: string, customerId: string, formDat
       amount: parseMoneyToCents(formData.get("amount") as string),
       vatRate: Number(formData.get("vatRate") || 24),
       dueDate: date(formData.get("dueDate")),
+      payLink: str(formData.get("payLink")),
     },
   });
   revalidatePath(`/customers/${customerId}`);
@@ -121,6 +123,41 @@ export async function deleteCharge(chargeId: string, customerId: string) {
   await prisma.charge.delete({ where: { id: chargeId } });
   revalidatePath(`/customers/${customerId}`);
   revalidatePath("/");
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Recurring charges (επαναλαμβανόμενες)
+// ─────────────────────────────────────────────────────────────────
+export async function saveRecurring(customerId: string, formData: FormData) {
+  await requireUser();
+  const id = str(formData.get("id"));
+  const title = String(formData.get("title") || "").trim();
+  const amount = parseMoneyToCents(formData.get("amount") as string);
+  if (!title || amount <= 0) return;
+  const data = {
+    title,
+    amount,
+    vatRate: Number(formData.get("vatRate") || 24),
+    interval: String(formData.get("interval") || "MONTHLY"),
+    dueDays: Number(formData.get("dueDays") || 14),
+    payLink: str(formData.get("payLink")),
+    nextRunAt: date(formData.get("nextRunAt")) ?? new Date(),
+  };
+  if (id) await prisma.recurringCharge.update({ where: { id }, data });
+  else await prisma.recurringCharge.create({ data: { customerId, ...data } });
+  revalidatePath(`/customers/${customerId}`);
+}
+
+export async function toggleRecurring(id: string, customerId: string, active: boolean) {
+  await requireUser();
+  await prisma.recurringCharge.update({ where: { id }, data: { active } });
+  revalidatePath(`/customers/${customerId}`);
+}
+
+export async function deleteRecurring(id: string, customerId: string) {
+  await requireUser();
+  await prisma.recurringCharge.delete({ where: { id } });
+  revalidatePath(`/customers/${customerId}`);
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -143,7 +180,7 @@ export async function addPayment(chargeId: string, customerId: string, formData:
     data: {
       customerId,
       type: "PAYMENT",
-      body: `Είσπραξη ${(amount / 100).toFixed(2)} €`,
+      body: `Payment received €${(amount / 100).toFixed(2)}`,
     },
   });
   revalidatePath(`/customers/${customerId}`);
@@ -258,7 +295,7 @@ export async function sendCustomerEmail(
   formData: FormData
 ): Promise<{ ok?: boolean; error?: string }> {
   const session = await getSession();
-  if (!session) return { error: "Μη εξουσιοδοτημένο." };
+  if (!session) return { error: "Unauthorized." };
 
   const customerId = str(formData.get("customerId"));
   const senderId = String(formData.get("senderId") || "");
@@ -266,9 +303,9 @@ export async function sendCustomerEmail(
   const subject = String(formData.get("subject") || "").trim();
   const body = String(formData.get("body") || "");
 
-  if (!to || !subject) return { error: "Λείπει παραλήπτης ή θέμα." };
+  if (!to || !subject) return { error: "Missing recipient or subject." };
   const sender = await prisma.sender.findUnique({ where: { id: senderId } });
-  if (!sender) return { error: "Διάλεξε αποστολέα." };
+  if (!sender) return { error: "Choose a sender." };
 
   try {
     await sendEmail({
@@ -292,13 +329,13 @@ export async function sendCustomerEmail(
     });
     if (customerId) {
       await prisma.activity.create({
-        data: { customerId, type: "EMAIL", body: `Στάλθηκε email: ${subject}` },
+        data: { customerId, type: "EMAIL", body: `Email sent: ${subject}` },
       });
       revalidatePath(`/customers/${customerId}`);
     }
     return { ok: true };
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Αποτυχία αποστολής.";
+    const message = e instanceof Error ? e.message : "Failed to send.";
     await prisma.emailLog.create({
       data: {
         customerId: customerId || null,

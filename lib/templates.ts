@@ -10,11 +10,12 @@ export function renderTemplate(text: string, vars: TemplateVars): string {
 }
 
 export const TEMPLATE_VARIABLES: { key: string; label: string }[] = [
-  { key: "name", label: "Επωνυμία πελάτη" },
-  { key: "contact", label: "Υπεύθυνος επικοινωνίας" },
-  { key: "amount", label: "Οφειλόμενο ποσό" },
-  { key: "total", label: "Συνολικό συμφωνηθέν" },
-  { key: "due", label: "Ημ/νία λήξης" },
-  { key: "vat", label: "ΑΦΜ" },
-  { key: "today", label: "Σημερινή ημερομηνία" },
+  { key: "name", label: "Client name" },
+  { key: "contact", label: "Contact person" },
+  { key: "amount", label: "Amount due" },
+  { key: "total", label: "Total agreed" },
+  { key: "due", label: "Due date" },
+  { key: "vat", label: "VAT number" },
+  { key: "paylink", label: "Payment link" },
+  { key: "today", label: "Today's date" },
 ];

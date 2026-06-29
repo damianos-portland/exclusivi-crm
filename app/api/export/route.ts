@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
         centsToGreekNumber(a.total),
       ]);
     const csv = toCsv(
-      ["Πελάτης", "ΑΦΜ", "PMS", "Τρέχον", "1-30", "31-60", "61-90", "90+", "Σύνολο υπολοίπου"],
+      ["Client", "VAT", "PMS", "Current", "1-30", "31-60", "61-90", "90+", "Total outstanding"],
       rows
     );
     return csvResponse(`aging_${stamp}.csv`, csv);
@@ -57,10 +57,10 @@ export async function GET(req: NextRequest) {
       p.note,
     ]);
     const csv = toCsv(
-      ["Ημερομηνία", "Πελάτης", "ΑΦΜ", "Χρέωση", "Ποσό", "Τρόπος", "Σημείωση"],
+      ["Date", "Client", "VAT", "Charge", "Amount", "Method", "Note"],
       rows
     );
-    return csvResponse(`eispraxeis_${stamp}.csv`, csv);
+    return csvResponse(`payments_${stamp}.csv`, csv);
   }
 
   if (type === "vat") {
@@ -88,22 +88,22 @@ export async function GET(req: NextRequest) {
     });
     const csv = toCsv(
       [
-        "Ημ/νία",
-        "Πελάτης",
-        "ΑΦΜ",
-        "Περιγραφή",
-        "Καθαρή αξία",
-        "ΦΠΑ %",
-        "Ποσό ΦΠΑ",
-        "Σύνολο",
-        "Εισπραγμένα",
-        "Υπόλοιπο",
-        "Κατάσταση",
-        "Λήξη",
+        "Date",
+        "Client",
+        "VAT",
+        "Description",
+        "Net amount",
+        "VAT %",
+        "VAT amount",
+        "Total",
+        "Collected",
+        "Balance",
+        "Status",
+        "Due",
       ],
       rows
     );
-    return csvResponse(`fpa_xreoseis_${stamp}.csv`, csv);
+    return csvResponse(`charges_vat_${stamp}.csv`, csv);
   }
 
   if (type === "customers") {
@@ -129,21 +129,21 @@ export async function GET(req: NextRequest) {
     });
     const csv = toCsv(
       [
-        "Πελάτης",
-        "Υπεύθυνος",
+        "Client",
+        "Contact",
         "Email",
-        "Τηλέφωνο",
-        "ΑΦΜ",
+        "Phone",
+        "VAT",
         "PMS",
-        "Κατάσταση",
-        "Συμφωνηθέν",
-        "Εισπραγμένα",
-        "Υπόλοιπο",
-        "Ληξιπρόθεσμα",
+        "Status",
+        "Agreed",
+        "Collected",
+        "Outstanding",
+        "Overdue",
       ],
       rows
     );
-    return csvResponse(`pelates_${stamp}.csv`, csv);
+    return csvResponse(`clients_${stamp}.csv`, csv);
   }
 
   return new Response("Unknown export type", { status: 400 });

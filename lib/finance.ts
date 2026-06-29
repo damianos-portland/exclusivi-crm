@@ -20,10 +20,10 @@ export type ChargeComputed = {
 export type PaymentStatus = "PAID" | "PARTIAL" | "PENDING" | "OVERDUE";
 
 export const STATUS_LABELS: Record<PaymentStatus, string> = {
-  PAID: "Εξοφλημένο",
-  PARTIAL: "Μερική πληρωμή",
-  PENDING: "Εκκρεμεί",
-  OVERDUE: "Ληξιπρόθεσμο",
+  PAID: "Paid",
+  PARTIAL: "Partial",
+  PENDING: "Pending",
+  OVERDUE: "Overdue",
 };
 
 export const STATUS_COLORS: Record<PaymentStatus, string> = {
@@ -68,11 +68,11 @@ export type AgingBuckets = {
 };
 
 export const AGING_LABELS: Record<keyof Omit<AgingBuckets, "total">, string> = {
-  current: "Τρέχον",
-  d1_30: "1–30 ημ.",
-  d31_60: "31–60 ημ.",
-  d61_90: "61–90 ημ.",
-  d90_plus: "90+ ημ.",
+  current: "Current",
+  d1_30: "1–30 d",
+  d31_60: "31–60 d",
+  d61_90: "61–90 d",
+  d90_plus: "90+ d",
 };
 
 export function agingForCharges(charges: ChargeLike[], now: Date = new Date()): AgingBuckets {

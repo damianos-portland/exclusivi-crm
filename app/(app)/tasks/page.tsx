@@ -25,19 +25,19 @@ export default async function TasksPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Εκκρεμότητες</h1>
-          <p className="text-sm text-[var(--muted)]">{open.length} ανοιχτές</p>
+          <h1 className="text-2xl font-semibold">Tasks</h1>
+          <p className="text-sm text-[var(--muted)]">{open.length} open</p>
         </div>
-        <FormModal trigger="+ Νέα εκκρεμότητα" title="Νέα εκκρεμότητα" action={addTask}>
+        <FormModal trigger="+ New task" title="New task" action={addTask}>
           <div>
-            <label className="label">Τίτλος *</label>
+            <label className="label">Title *</label>
             <input name="title" required className="input" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">Πελάτης</label>
+              <label className="label">Client</label>
               <select name="customerId" className="input">
-                <option value="">— Κανένας —</option>
+                <option value="">— None —</option>
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -46,7 +46,7 @@ export default async function TasksPage() {
               </select>
             </div>
             <div>
-              <label className="label">Προθεσμία</label>
+              <label className="label">Due date</label>
               <input name="dueDate" type="date" className="input" />
             </div>
           </div>
@@ -69,15 +69,13 @@ export default async function TasksPage() {
                   )}
                   {t.customer && t.dueDate && " · "}
                   {t.dueDate && (
-                    <span className={overdue ? "text-red-600" : ""}>
-                      {formatDate(t.dueDate)}
-                    </span>
+                    <span className={overdue ? "text-red-600" : ""}>{formatDate(t.dueDate)}</span>
                   )}
                 </div>
               </div>
               <ConfirmButton
                 action={deleteTask.bind(null, t.id)}
-                message="Διαγραφή;"
+                message="Delete?"
                 className="text-xs text-red-500 hover:underline"
               >
                 ✕
@@ -86,15 +84,13 @@ export default async function TasksPage() {
           );
         })}
         {open.length === 0 && (
-          <p className="px-5 py-8 text-center text-sm text-[var(--muted)]">
-            Καμία ανοιχτή εκκρεμότητα 🎉
-          </p>
+          <p className="px-5 py-8 text-center text-sm text-[var(--muted)]">No open tasks 🎉</p>
         )}
       </div>
 
       {done.length > 0 && (
         <div>
-          <h2 className="mb-2 text-sm font-medium text-[var(--muted)]">Ολοκληρωμένες</h2>
+          <h2 className="mb-2 text-sm font-medium text-[var(--muted)]">Completed</h2>
           <div className="card divide-y opacity-70">
             {done.map((t) => (
               <div key={t.id} className="flex items-center gap-3 px-5 py-3">
@@ -102,7 +98,7 @@ export default async function TasksPage() {
                 <div className="flex-1 text-sm line-through">{t.title}</div>
                 <ConfirmButton
                   action={deleteTask.bind(null, t.id)}
-                  message="Διαγραφή;"
+                  message="Delete?"
                   className="text-xs text-red-500 hover:underline"
                 >
                   ✕

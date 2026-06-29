@@ -47,11 +47,11 @@ export function EmailComposer({
   if (senders.length === 0) {
     return (
       <p className="text-sm text-[var(--muted)]">
-        Δεν υπάρχουν αποστολείς. Πρόσθεσε έναν στη σελίδα{" "}
+        No senders yet. Add one on the{" "}
         <a href="/senders" className="text-[var(--accent)]">
-          Αποστολείς
-        </a>
-        .
+          Senders
+        </a>{" "}
+        page.
       </p>
     );
   }
@@ -61,7 +61,7 @@ export function EmailComposer({
       <input type="hidden" name="customerId" value={customerId} />
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="label">Αποστολέας</label>
+          <label className="label">Sender</label>
           <select name="senderId" defaultValue={defaultSender?.id} className="input">
             {senders.map((s) => (
               <option key={s.id} value={s.id}>
@@ -77,7 +77,7 @@ export function EmailComposer({
             className="input"
             onChange={(e) => applyTemplate(e.target.value)}
           >
-            <option value="">— Κενό —</option>
+            <option value="">— Blank —</option>
             {templates.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
@@ -88,11 +88,11 @@ export function EmailComposer({
       </div>
 
       <div>
-        <label className="label">Προς</label>
+        <label className="label">To</label>
         <input name="to" type="email" defaultValue={to} required className="input" />
       </div>
       <div>
-        <label className="label">Θέμα</label>
+        <label className="label">Subject</label>
         <input
           name="subject"
           value={subject}
@@ -102,7 +102,7 @@ export function EmailComposer({
         />
       </div>
       <div>
-        <label className="label">Μήνυμα</label>
+        <label className="label">Message</label>
         <textarea
           name="body"
           rows={8}
@@ -117,13 +117,13 @@ export function EmailComposer({
       )}
       {state?.ok && (
         <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
-          ✓ Το email στάλθηκε.
+          ✓ Email sent.
         </p>
       )}
 
       <div className="flex justify-end">
         <button type="submit" disabled={pending} className="btn-primary btn-sm">
-          {pending ? "Αποστολή…" : "Αποστολή email"}
+          {pending ? "Sending…" : "Send email"}
         </button>
       </div>
     </form>
