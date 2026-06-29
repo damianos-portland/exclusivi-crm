@@ -1,6 +1,5 @@
 import "server-only";
 import { ImapFlow } from "imapflow";
-import { simpleParser } from "mailparser";
 import { prisma } from "./prisma";
 
 // Polls the Gmail inbox via IMAP and logs replies from known customers
@@ -51,38 +50,51 @@ export async function pollInbound(): Promise<{
   try {
     const lock = await client.getMailboxLock("INBOX");
     try {
-      for await (const msg of client.fetch({ since }, { envelope: true, source: true })) {
+      // Envelope-only scan (light) — we don't download message bodies.
+      const matches: {
+        from: string;
+        name: string;
+        subject: string;
+        date: Date;
+        messageId: string;
+        customerId: string;
+      }[] = [];
+
+      for await (const msg of client.fetch({ since }, { envelope: true })) {
         scanned++;
         const from = msg.envelope?.from?.[0]?.address?.toLowerCase();
         if (!from) continue;
         const customer = byEmail.get(from);
         if (!customer) continue;
+        matches.push({
+          from,
+          name: msg.envelope?.from?.[0]?.name || from,
+          subject: msg.envelope?.subject || "(no subject)",
+          date: msg.envelope?.date ?? new Date(),
+          messageId: msg.envelope?.messageId ?? `imap-${msg.uid}`,
+          customerId: customer.id,
+        });
+      }
 
-        const messageId = msg.envelope?.messageId ?? `imap-${msg.uid}`;
-        const exists = await prisma.emailLog.findUnique({ where: { messageId } });
+      for (const m of matches) {
+        const exists = await prisma.emailLog.findUnique({ where: { messageId: m.messageId } });
         if (exists) continue;
-
-        const parsed = await simpleParser(msg.source as Buffer);
-        const subject = parsed.subject || "(χωρίς θέμα)";
-        const body = (parsed.text || "").slice(0, 4000);
-        const sentAt = parsed.date ?? new Date();
-
         await prisma.emailLog.create({
           data: {
-            customerId: customer.id,
+            customerId: m.customerId,
             toEmail: user,
-            fromEmail: from,
-            fromName: msg.envelope?.from?.[0]?.name || from,
-            subject,
-            body,
+            fromEmail: m.from,
+            fromName: m.name,
+            subject: m.subject,
+            body: "",
             status: "SENT",
             kind: "INBOUND",
-            messageId,
-            sentAt,
+            messageId: m.messageId,
+            sentAt: m.date,
           },
         });
         await prisma.activity.create({
-          data: { customerId: customer.id, type: "EMAIL", body: `Reply received: ${subject}` },
+          data: { customerId: m.customerId, type: "EMAIL", body: `Reply received: ${m.subject}` },
         });
         logged++;
       }
