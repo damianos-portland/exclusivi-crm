@@ -10,11 +10,22 @@ import { pollInbound } from "@/lib/inbound";
 import { stepForDays } from "@/lib/dunning";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60; // allow up to 60s for SMTP/IMAP work
+
+// Time-box any promise so a stalled network op can never hang the function.
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+    ),
+  ]);
+}
 
 // Daily run (Vercel Cron). Does three things:
 //   1. Generates due recurring charges
 //   2. Sends escalating payment reminders (dunning: gentle → firm → final)
-//   3. Polls the inbox for client replies (IMAP) and logs them
+//   3. Polls the inbox for client replies (IMAP) and logs them (time-boxed, last)
 // Protected by CRON_SECRET.
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -29,16 +40,8 @@ export async function GET(req: NextRequest) {
   const now = new Date();
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  // 1) Generate recurring charges first
+  // 1) Generate recurring charges first (DB-only, fast)
   const recurring = await runRecurring(now);
-
-  // 3) Poll inbound replies (best-effort; isolated from reminder failures)
-  let inbound: Awaited<ReturnType<typeof pollInbound>> | { error: string };
-  try {
-    inbound = await pollInbound();
-  } catch (e) {
-    inbound = { error: e instanceof Error ? e.message : "inbound poll failed" };
-  }
 
   const sender =
     (await prisma.sender.findFirst({ where: { isDefault: true } })) ??
@@ -47,6 +50,7 @@ export async function GET(req: NextRequest) {
   const templateByName = new Map(allTemplates.map((t) => [t.name, t]));
 
   if (!sender) {
+    const inbound = await runInbound();
     return NextResponse.json({
       ran: now.toISOString(),
       recurring,
@@ -150,10 +154,21 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // 3) Inbound poll last + time-boxed, so it can never block reminders
+  const inbound = await runInbound();
+
   return NextResponse.json({
     ran: now.toISOString(),
     recurring,
     inbound,
     reminders: { count: results.length, results },
   });
+}
+
+async function runInbound() {
+  try {
+    return await withTimeout(pollInbound(), 25000, "inbound poll");
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "inbound poll failed" };
+  }
 }

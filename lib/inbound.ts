@@ -40,6 +40,9 @@ export async function pollInbound(): Promise<{
     secure: true,
     auth: { user, pass },
     logger: false,
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 15000,
   });
 
   let logged = 0;

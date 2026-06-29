@@ -20,6 +20,10 @@ function getTransporter(): nodemailer.Transporter {
     port,
     secure: port === 465,
     auth: { user, pass },
+    // Hard timeouts so a stalled connection can never hang the serverless function.
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   });
   return transporter;
 }
