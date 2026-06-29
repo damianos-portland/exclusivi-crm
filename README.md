@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Exclusivi CRM
 
-## Getting Started
+Εσωτερικό CRM για εποπτεία πελατών & έλεγχο πληρωμών. Ένας χρήστης (ο CEO),
+αποστολή email μέσω Gmail/Workspace, manual παρακολούθηση πληρωμών.
 
-First, run the development server:
+## Τι κάνει
+
+- **Επισκόπηση (dashboard)** — KPIs: αναμενόμενα, ληξιπρόθεσμα, εισπράξεις μήνα, συνολικά εισπραγμένα· λίστα «χρειάζονται προσοχή».
+- **Πελάτες** — στοιχεία, επικοινωνία, ΑΦΜ, κατάσταση (Lead/Ενεργός/Ανενεργός), αναζήτηση.
+- **Πληρωμές** — συμφωνηθέν ποσό + ΦΠΑ, due date με αυτόματο flag «ληξιπρόθεσμο», ledger εισπράξεων ανά χρέωση, κατάσταση (Εκκρεμεί/Μερική/Εξοφλημένο/Ληξιπρόθεσμο).
+- **Email** — templates με μεταβλητές (`{{name}}`, `{{amount}}`, `{{due}}`…), επιλογή αποστολέα & περιεχομένου, log απεσταλμένων.
+- **Αυτόματες υπενθυμίσεις** — cron που στέλνει υπενθύμιση για ληξιπρόθεσμα (μία φορά/εβδομάδα ανά πελάτη).
+- **Εκκρεμότητες & timeline** — follow-up tasks και ιστορικό/σημειώσεις ανά πελάτη.
+
+## Τοπική εκτέλεση
 
 ```bash
+npm install
+cp .env.example .env      # συμπλήρωσε τις τιμές
+npm run seed              # δημιουργεί τον χρήστη + δείγμα δεδομένων
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Άνοιξε http://localhost:3000 και σύνδεση με τα στοιχεία του `.env`
+(`ADMIN_EMAIL` / `ADMIN_PASSWORD`, default: `ceo@exclusivi.gr` / `exclusivi2026`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Αποστολή email (Gmail / Workspace)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Ενεργοποίησε 2FA στον λογαριασμό Google.
+2. Δημιούργησε **App Password**: https://myaccount.google.com/apppasswords
+3. Βάλε στο `.env`: `SMTP_USER` (το email) και `SMTP_PASS` (το 16-ψήφιο app password).
+4. Πρόσθεσε τους αποστολείς στη σελίδα **Αποστολείς** (πρέπει να είναι ρυθμισμένοι ως «send-as» στο Gmail).
 
-## Learn More
+## Deploy στο Vercel (δωρεάν)
 
-To learn more about Next.js, take a look at the following resources:
+1. **Βάση**: φτιάξε δωρεάν Postgres στο [Neon](https://neon.tech). Άλλαξε στο
+   `prisma/schema.prisma` το `provider = "sqlite"` → `"postgresql"` και βάλε το
+   `DATABASE_URL` του Neon στα env vars του Vercel.
+2. Τρέξε `npx prisma migrate deploy` (ή το πρώτο deploy το κάνει το build).
+3. Όρισε τα env vars στο Vercel: `AUTH_SECRET`, `DATABASE_URL`, `SMTP_*`, `CRON_SECRET`.
+4. Το `vercel.json` έχει ήδη ρυθμισμένο cron (κάθε μέρα 09:00) για τις υπενθυμίσεις.
+5. Μετά το πρώτο deploy, τρέξε το seed μία φορά για τον χρήστη.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Cron υπενθυμίσεων (χειροκίνητη δοκιμή)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+GET /api/cron/reminders?key=<CRON_SECRET>
+```
 
-## Deploy on Vercel
+## Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js 16 (App Router) · Prisma · SQLite (τοπικά) / Postgres (prod) · Tailwind v4 · nodemailer · jose (session).

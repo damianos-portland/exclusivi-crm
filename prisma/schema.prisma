@@ -1,0 +1,125 @@
+// Exclusivi CRM — data model
+// Χρήματα αποθηκεύονται σε λεπτά (integer cents) για ακρίβεια. Νόμισμα default EUR.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Ο μοναδικός χρήστης (CEO). Password hash + session.
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String // scrypt hash
+  createdAt DateTime @default(now())
+}
+
+model Customer {
+  id            String   @id @default(cuid())
+  name          String // Επωνυμία / Ονοματεπώνυμο
+  contactPerson String? // Υπεύθυνος επικοινωνίας
+  email         String?
+  phone         String?
+  vatNumber     String? // ΑΦΜ
+  address       String?
+  status        String   @default("ACTIVE") // LEAD | ACTIVE | CHURNED
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  charges    Charge[]
+  tasks      Task[]
+  activities Activity[]
+  emails     EmailLog[]
+}
+
+// Συμφωνηθέν ποσό προς είσπραξη (μία χρέωση/συμφωνία).
+model Charge {
+  id         String    @id @default(cuid())
+  customerId String
+  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  title      String // π.χ. "Συμβόλαιο 2026" / "Προκαταβολή"
+  amount     Int // συμφωνηθέν ποσό σε λεπτά (καθαρή αξία)
+  vatRate    Int       @default(24) // ΦΠΑ %
+  currency   String    @default("EUR")
+  dueDate    DateTime?
+  status     String    @default("PENDING") // PENDING | PARTIAL | PAID  (OVERDUE υπολογίζεται από dueDate)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  receipts Payment[]
+}
+
+// Είσπραξη έναντι μιας χρέωσης (ledger).
+model Payment {
+  id        String   @id @default(cuid())
+  chargeId  String
+  charge    Charge   @relation(fields: [chargeId], references: [id], onDelete: Cascade)
+  amount    Int // ποσό είσπραξης σε λεπτά
+  paidAt    DateTime @default(now())
+  method    String? // Μετρητά | Τραπεζική | Κάρτα | ...
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+// Templates email με μεταβλητές {{name}}, {{amount}}, {{due}} κ.λπ.
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  subject   String
+  body      String // υποστηρίζει {{μεταβλητές}}
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Διαθέσιμοι αποστολείς (send-as του Gmail/Workspace).
+model Sender {
+  id        String   @id @default(cuid())
+  label     String // π.χ. "Λογιστήριο"
+  fromName  String // εμφανιζόμενο όνομα
+  fromEmail String // π.χ. accounts@exclusivi.gr
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// Ιστορικό απεσταλμένων email.
+model EmailLog {
+  id         String    @id @default(cuid())
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  toEmail    String
+  fromEmail  String
+  fromName   String
+  subject    String
+  body       String
+  status     String    @default("SENT") // SENT | FAILED
+  error      String?
+  kind       String    @default("MANUAL") // MANUAL | REMINDER
+  sentAt     DateTime  @default(now())
+}
+
+// Follow-up tasks / υπενθυμίσεις ανά πελάτη.
+model Task {
+  id         String    @id @default(cuid())
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  title      String
+  dueDate    DateTime?
+  done       Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+}
+
+// Timeline ανά πελάτη (σημειώσεις + auto-logs).
+model Activity {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type       String   @default("NOTE") // NOTE | PAYMENT | EMAIL | STATUS
+  body       String
+  createdAt  DateTime @default(now())
+}

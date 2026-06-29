@@ -1,26 +1,73 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6f7f9;
+  --surface: #ffffff;
+  --foreground: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --accent: #4f46e5;
+  --accent-fg: #ffffff;
+  --ring: #c7d2fe;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-inter);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Reusable component classes ─────────────────────────────────── */
+@layer components {
+  .card {
+    @apply rounded-xl border bg-[var(--surface)] shadow-sm;
+  }
+  .btn,
+  .btn-primary,
+  .btn-ghost,
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply bg-[var(--accent)] text-white hover:opacity-90;
+  }
+  .btn-ghost {
+    @apply border bg-[var(--surface)] text-[var(--foreground)] hover:bg-slate-50;
+  }
+  .btn-danger {
+    @apply border border-red-200 bg-white text-red-600 hover:bg-red-50;
+  }
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+  .input {
+    @apply w-full rounded-lg border bg-white px-3 py-2 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--ring)] placeholder:text-slate-400;
+  }
+  .label {
+    @apply mb-1 block text-xs font-medium text-[var(--muted)];
+  }
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium;
+  }
+  .th {
+    @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--muted)];
+  }
+  .td {
+    @apply px-4 py-3 text-sm align-middle;
+  }
 }
